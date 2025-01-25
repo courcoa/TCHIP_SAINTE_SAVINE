@@ -123,6 +123,7 @@
         function nextSlide() {
             currentSlide++;
             updateCarousel();
+        
             if (currentSlide === totalSlides + 1) {
                 setTimeout(() => {
                     carouselInner.style.transition = 'none';
@@ -135,6 +136,7 @@
         function prevSlide() {
             currentSlide--;
             updateCarousel();
+        
             if (currentSlide === 0) {
                 setTimeout(() => {
                     carouselInner.style.transition = 'none';
@@ -162,8 +164,10 @@
         carouselInner.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
             if (touchStartX - touchEndX > 50) {
+                // Swipe vers la droite (suivant)
                 nextSlide();
             } else if (touchEndX - touchStartX > 50) {
+                // Swipe vers la gauche (précédent)
                 prevSlide();
             }
             e.preventDefault();  // Empêcher le comportement par défaut (scrolling)
