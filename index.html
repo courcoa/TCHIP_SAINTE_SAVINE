@@ -116,87 +116,93 @@
     </div>
 
     <script>
-        let currentSlide = 1;
-        const carouselInner = document.getElementById('carouselInner');
-        const slides = document.querySelectorAll('.carousel-item');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const totalSlides = slides.length - 2; // Excluding the duplicates
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = {
+                element: document.getElementById('carouselInner'),
+                slides: document.querySelectorAll('.carousel-item'),
+                totalSlides: 0,
+                currentSlide: 1,
+                isTransitioning: false,
     
-        function updateCarousel() {
-            carouselInner.style.transition = 'transform 0.5s';
-            carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-        }
+                init() {
+                    this.totalSlides = this.slides.length - 2;
+                    this.setupEventListeners();
+                    this.updatePosition();
+                },
     
-        function handleSlideTransition() {
-            if (currentSlide === totalSlides + 1) {
-                // Returning to start
-                setTimeout(() => {
-                    carouselInner.style.transition = 'none';
-                    currentSlide = 1;
-                    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-                }, 500);
-            } else if (currentSlide === 0) {
-                // Returning to end
-                setTimeout(() => {
-                    carouselInner.style.transition = 'none';
-                    currentSlide = totalSlides;
-                    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-                }, 500);
-            }
-        }
+                updatePosition() {
+                    if (this.isTransitioning) return;
+                    this.element.style.transition = 'transform 0.5s';
+                    this.element.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+                },
     
-        function nextSlide() {
-            currentSlide++;
-            updateCarousel();
-            handleSlideTransition();
-        }
+                nextSlide() {
+                    if (this.isTransitioning) return;
+                    this.isTransitioning = true;
+                    this.currentSlide++;
+                    this.updatePosition();
     
-        function prevSlide() {
-            currentSlide--;
-            updateCarousel();
-            handleSlideTransition();
-        }
+                    if (this.currentSlide > this.totalSlides) {
+                        setTimeout(() => {
+                            this.element.style.transition = 'none';
+                            this.currentSlide = 1;
+                            this.updatePosition();
+                            this.isTransitioning = false;
+                        }, 500);
+                    } else {
+                        setTimeout(() => {
+                            this.isTransitioning = false;
+                        }, 500);
+                    }
+                },
     
-        nextBtn.addEventListener('click', nextSlide);
-        prevBtn.addEventListener('click', prevSlide);
+                prevSlide() {
+                    if (this.isTransitioning) return;
+                    this.isTransitioning = true;
+                    this.currentSlide--;
+                    this.updatePosition();
     
-        // Initialize position
-        updateCarousel();
+                    if (this.currentSlide < 1) {
+                        setTimeout(() => {
+                            this.element.style.transition = 'none';
+                            this.currentSlide = this.totalSlides;
+                            this.updatePosition();
+                            this.isTransitioning = false;
+                        }, 500);
+                    } else {
+                        setTimeout(() => {
+                            this.isTransitioning = false;
+                        }, 500);
+                    }
+                },
     
-        // Enhanced Swipe functionality
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let touchStartY = 0;
-        let touchDeltaX = 0;
+                setupEventListeners() {
+                    let touchStartX = 0;
+                    let touchEndX = 0;
+                    let touchStartY = 0;
     
-        carouselInner.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        });
+                    this.element.addEventListener('touchstart', (e) => {
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+                    });
     
-        carouselInner.addEventListener('touchmove', (e) => {
-            touchEndX = e.touches[0].clientX;
-            touchDeltaX = touchStartX - touchEndX;
-        });
+                    this.element.addEventListener('touchend', (e) => {
+                        touchEndX = e.changedTouches[0].clientX;
+                        const touchEndY = e.changedTouches[0].clientY;
+                        const deltaX = touchStartX - touchEndX;
+                        const deltaY = Math.abs(touchStartY - touchEndY);
     
-        carouselInner.addEventListener('touchend', (e) => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaY = Math.abs(touchStartY - touchEndY);
+                        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
+                            deltaX > 0 ? this.nextSlide() : this.prevSlide();
+                        }
+                    });
     
-            // Determine if swipe is significant and primarily horizontal
-            if (Math.abs(touchDeltaX) > 50 && Math.abs(touchDeltaX) > deltaY) {
-                if (touchDeltaX > 0) {
-                    nextSlide();
-                } else {
-                    prevSlide();
+                    document.getElementById('nextBtn').addEventListener('click', () => this.nextSlide());
+                    document.getElementById('prevBtn').addEventListener('click', () => this.prevSlide());
                 }
-            }
+            };
     
-            // Reset for next swipe
-            touchStartX = 0;
-            touchEndX = 0;
-            touchDeltaX = 0;
+            carousel.init();
         });
     </script>
 </body>
