@@ -122,28 +122,22 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const totalSlides = slides.length - 2; // Excluding the duplicates
-
+    
         function updateCarousel() {
             carouselInner.style.transition = 'transform 0.5s';
             carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
-
-        function nextSlide() {
-            currentSlide++;
-            updateCarousel();
+    
+        function handleSlideTransition() {
             if (currentSlide === totalSlides + 1) {
+                // Returning to start
                 setTimeout(() => {
                     carouselInner.style.transition = 'none';
                     currentSlide = 1;
                     carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
                 }, 500);
-            }
-        }
-
-        function prevSlide() {
-            currentSlide--;
-            updateCarousel();
-            if (currentSlide === 0) {
+            } else if (currentSlide === 0) {
+                // Returning to end
                 setTimeout(() => {
                     carouselInner.style.transition = 'none';
                     currentSlide = totalSlides;
@@ -151,58 +145,58 @@
                 }, 500);
             }
         }
-
+    
+        function nextSlide() {
+            currentSlide++;
+            updateCarousel();
+            handleSlideTransition();
+        }
+    
+        function prevSlide() {
+            currentSlide--;
+            updateCarousel();
+            handleSlideTransition();
+        }
+    
         nextBtn.addEventListener('click', nextSlide);
         prevBtn.addEventListener('click', prevSlide);
-
+    
         // Initialize position
         updateCarousel();
-
-        // Swipe functionality
+    
+        // Enhanced Swipe functionality
         let touchStartX = 0;
         let touchEndX = 0;
         let touchStartY = 0;
-        let touchEndY = 0;
-
+        let touchDeltaX = 0;
+    
         carouselInner.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         });
-
+    
+        carouselInner.addEventListener('touchmove', (e) => {
+            touchEndX = e.touches[0].clientX;
+            touchDeltaX = touchStartX - touchEndX;
+        });
+    
         carouselInner.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            const deltaX = touchStartX - touchEndX;
+            const touchEndY = e.changedTouches[0].clientY;
             const deltaY = Math.abs(touchStartY - touchEndY);
-
-            // Check if horizontal swipe and not primarily a vertical movement
-            if (Math.abs(deltaX) > 50 && deltaX > deltaY) {
-                if (deltaX > 0) {
+    
+            // Determine if swipe is significant and primarily horizontal
+            if (Math.abs(touchDeltaX) > 50 && Math.abs(touchDeltaX) > deltaY) {
+                if (touchDeltaX > 0) {
                     nextSlide();
                 } else {
                     prevSlide();
                 }
             }
-        });
-
-        // Lightbox functionality
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImage = document.getElementById('lightboxImage');
-        const carouselImages = document.querySelectorAll('.carousel-image');
-
-        function openLightbox(src) {
-            lightboxImage.src = src;
-            lightbox.style.display = 'flex';
-        }
-
-        function closeLightbox(event) {
-            if (event.target === lightbox || event.target.id === 'lightboxCloseBtn') {
-                lightbox.style.display = 'none';
-            }
-        }
-
-        carouselImages.forEach(img => {
-            img.addEventListener('click', () => openLightbox(img.src));
+    
+            // Reset for next swipe
+            touchStartX = 0;
+            touchEndX = 0;
+            touchDeltaX = 0;
         });
     </script>
 </body>
