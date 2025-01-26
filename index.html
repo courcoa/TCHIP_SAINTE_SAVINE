@@ -115,95 +115,114 @@
         </div>
     </div>
 
-    <script>
-        let currentSlide = 1;
-        const carouselInner = document.getElementById('carouselInner');
-        const slides = document.querySelectorAll('.carousel-item');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const totalSlides = slides.length - 2; // Excluding the duplicates
+<script>
+let currentSlide = 1;
+const carouselInner = document.getElementById('carouselInner');
+const slides = document.querySelectorAll('.carousel-item');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const totalSlides = slides.length - 2; // Excluding the duplicates
 
-        function updateCarousel() {
-            carouselInner.style.transition = 'transform 0.5s';
+function updateCarousel() {
+    carouselInner.style.transition = 'transform 0.5s';
+    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function nextSlide() {
+    currentSlide++;
+    updateCarousel();
+    if (currentSlide === totalSlides + 1) {
+        setTimeout(() => {
+            carouselInner.style.transition = 'none';
+            currentSlide = 1;
             carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }, 500);
+    }
+}
+
+function prevSlide() {
+    currentSlide--;
+    updateCarousel();
+    if (currentSlide === 0) {
+        setTimeout(() => {
+            carouselInner.style.transition = 'none';
+            currentSlide = totalSlides;
+            carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }, 500);
+    }
+}
+
+nextBtn.addEventListener('click', nextSlide);
+prevBtn.addEventListener('click', prevSlide);
+
+// Initialize position
+updateCarousel();
+
+// Improved Swipe Functionality
+let touchStartX = 0;
+let touchStartY = 0;
+let isSwiping = false;
+
+carouselInner.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+    isSwiping = false;
+});
+
+carouselInner.addEventListener('touchmove', (e) => {
+    const touchMoveX = e.changedTouches[0].screenX;
+    const touchMoveY = e.changedTouches[0].screenY;
+    const deltaX = touchMoveX - touchStartX;
+    const deltaY = touchMoveY - touchStartY;
+
+    // Determine if this is a horizontal swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        isSwiping = true;
+        e.preventDefault(); // Prevent vertical scrolling
+    }
+});
+
+carouselInner.addEventListener('touchend', (e) => {
+    if (!isSwiping) return;
+
+    const touchEndX = e.changedTouches[0].screenX;
+    const deltaX = touchStartX - touchEndX;
+
+    // Swipe threshold and direction
+    if (Math.abs(deltaX) > 50) {
+        if (deltaX > 0) {
+            nextSlide();
+        } else {
+            prevSlide();
         }
+    }
+});
 
-        function nextSlide() {
-            currentSlide++;
-            updateCarousel();
-            if (currentSlide === totalSlides + 1) {
-                setTimeout(() => {
-                    carouselInner.style.transition = 'none';
-                    currentSlide = 1;
-                    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-                }, 500);
-            }
-        }
+// Prevent default touch behavior to improve swipe experience
+carouselInner.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
 
-        function prevSlide() {
-            currentSlide--;
-            updateCarousel();
-            if (currentSlide === 0) {
-                setTimeout(() => {
-                    carouselInner.style.transition = 'none';
-                    currentSlide = totalSlides;
-                    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-                }, 500);
-            }
-        }
+// Lightbox functionality
+const lightbox = document.getElementById('lightbox');
+const lightboxImage = document.getElementById('lightboxImage');
+const carouselImages = document.querySelectorAll('.carousel-image');
 
-        nextBtn.addEventListener('click', nextSlide);
-        prevBtn.addEventListener('click', prevSlide);
+function openLightbox(src) {
+    lightboxImage.src = src;
+    lightbox.style.display = 'flex';
+}
 
-        // Initialize position
-        updateCarousel();
+function closeLightbox(event) {
+    if (event.target === lightbox || event.target.id === 'lightboxCloseBtn') {
+        lightbox.style.display = 'none';
+    }
+}
 
-        // Swipe functionality
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let touchStartY = 0;
-        let touchEndY = 0;
+carouselImages.forEach(img => {
+    img.addEventListener('click', () => openLightbox(img.src));
+});
 
-        carouselInner.addEventListener('touchstart', (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        });
-
-        carouselInner.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            const deltaX = touchStartX - touchEndX;
-            const deltaY = Math.abs(touchStartY - touchEndY);
-
-            // Check if horizontal swipe and not primarily a vertical movement
-            if (Math.abs(deltaX) > 50 && deltaX > deltaY) {
-                if (deltaX > 0) {
-                    nextSlide();
-                } else {
-                    prevSlide();
-                }
-            }
-        });
-
-        // Lightbox functionality
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImage = document.getElementById('lightboxImage');
-        const carouselImages = document.querySelectorAll('.carousel-image');
-
-        function openLightbox(src) {
-            lightboxImage.src = src;
-            lightbox.style.display = 'flex';
-        }
-
-        function closeLightbox(event) {
-            if (event.target === lightbox || event.target.id === 'lightboxCloseBtn') {
-                lightbox.style.display = 'none';
-            }
-        }
-
-        carouselImages.forEach(img => {
-            img.addEventListener('click', () => openLightbox(img.src));
-        });
-    </script>
+// Lightbox close button
+document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
+</script>
 </body>
 </html>
