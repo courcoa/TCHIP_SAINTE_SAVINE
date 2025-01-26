@@ -121,7 +121,7 @@ const carouselInner = document.getElementById('carouselInner');
 const slides = document.querySelectorAll('.carousel-item');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
-const totalSlides = slides.length - 2; // Excluding the duplicates
+const totalSlides = slides.length - 2;
 
 function updateCarousel() {
     carouselInner.style.transition = 'transform 0.5s';
@@ -155,53 +155,39 @@ function prevSlide() {
 nextBtn.addEventListener('click', nextSlide);
 prevBtn.addEventListener('click', prevSlide);
 
-// Initialize position
 updateCarousel();
 
-// Improved Swipe Functionality
 let touchStartX = 0;
-let touchStartY = 0;
-let isSwiping = false;
+let touchEndX = 0;
+let touchDeltaX = 0;
+let isScrolling = false;
 
 carouselInner.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-    isSwiping = false;
-});
+    touchStartX = e.touches[0].clientX;
+    isScrolling = false;
+}, { passive: true });
 
 carouselInner.addEventListener('touchmove', (e) => {
-    const touchMoveX = e.changedTouches[0].screenX;
-    const touchMoveY = e.changedTouches[0].screenY;
-    const deltaX = touchMoveX - touchStartX;
-    const deltaY = touchMoveY - touchStartY;
-
-    // Determine if this is a horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-        isSwiping = true;
-        e.preventDefault(); // Prevent vertical scrolling
+    touchEndX = e.touches[0].clientX;
+    touchDeltaX = touchStartX - touchEndX;
+    
+    // Determine scrolling intent
+    if (Math.abs(touchDeltaX) > 10) {
+        isScrolling = true;
+        e.preventDefault();
     }
-});
+}, { passive: false });
 
 carouselInner.addEventListener('touchend', (e) => {
-    if (!isSwiping) return;
+    if (!isScrolling) return;
 
-    const touchEndX = e.changedTouches[0].screenX;
-    const deltaX = touchStartX - touchEndX;
-
-    // Swipe threshold and direction
-    if (Math.abs(deltaX) > 50) {
-        if (deltaX > 0) {
-            nextSlide();
-        } else {
-            prevSlide();
-        }
+    // Adjust slide based on swipe distance
+    if (Math.abs(touchDeltaX) > 50) {
+        touchDeltaX > 0 ? nextSlide() : prevSlide();
     }
-});
+}, { passive: true });
 
-// Prevent default touch behavior to improve swipe experience
-carouselInner.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-
-// Lightbox functionality
+// Lightbox handling
 const lightbox = document.getElementById('lightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const carouselImages = document.querySelectorAll('.carousel-image');
@@ -221,7 +207,6 @@ carouselImages.forEach(img => {
     img.addEventListener('click', () => openLightbox(img.src));
 });
 
-// Lightbox close button
 document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
 </script>
 </body>
