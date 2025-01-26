@@ -118,90 +118,69 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const carousel = {
-                element: document.getElementById('carouselInner'),
+                container: document.getElementById('imageCarousel'),
+                inner: document.getElementById('carouselInner'),
                 slides: document.querySelectorAll('.carousel-item'),
-                totalSlides: 0,
+                prevBtn: document.getElementById('prevBtn'),
+                nextBtn: document.getElementById('nextBtn'),
                 currentSlide: 1,
-                isTransitioning: false,
-    
+                totalSlides: 0,
+                isAnimating: false,
+
                 init() {
                     this.totalSlides = this.slides.length - 2;
                     this.setupEventListeners();
-                    this.updatePosition();
+                    this.goToSlide(1);
                 },
-    
-                updatePosition() {
-                    if (this.isTransitioning) return;
-                    this.element.style.transition = 'transform 0.5s';
-                    this.element.style.transform = `translateX(-${this.currentSlide * 100}%)`;
-                },
-    
-                nextSlide() {
-                    if (this.isTransitioning) return;
-                    this.isTransitioning = true;
-                    this.currentSlide++;
-                    this.updatePosition();
-    
-                    if (this.currentSlide > this.totalSlides) {
-                        setTimeout(() => {
-                            this.element.style.transition = 'none';
-                            this.currentSlide = 1;
-                            this.updatePosition();
-                            this.isTransitioning = false;
-                        }, 500);
-                    } else {
-                        setTimeout(() => {
-                            this.isTransitioning = false;
-                        }, 500);
-                    }
-                },
-    
-                prevSlide() {
-                    if (this.isTransitioning) return;
-                    this.isTransitioning = true;
-                    this.currentSlide--;
-                    this.updatePosition();
-    
-                    if (this.currentSlide < 1) {
-                        setTimeout(() => {
-                            this.element.style.transition = 'none';
+
+                goToSlide(slideNumber) {
+                    if (this.isAnimating) return;
+                    
+                    this.isAnimating = true;
+                    this.currentSlide = slideNumber;
+                    
+                    this.inner.style.transition = 'transform 0.5s ease';
+                    this.inner.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+
+                    setTimeout(() => {
+                        if (this.currentSlide === 0) {
+                            this.inner.style.transition = 'none';
                             this.currentSlide = this.totalSlides;
-                            this.updatePosition();
-                            this.isTransitioning = false;
-                        }, 500);
-                    } else {
-                        setTimeout(() => {
-                            this.isTransitioning = false;
-                        }, 500);
-                    }
+                            this.inner.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+                        }
+                        
+                        if (this.currentSlide > this.totalSlides) {
+                            this.inner.style.transition = 'none';
+                            this.currentSlide = 1;
+                            this.inner.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+                        }
+                        
+                        this.isAnimating = false;
+                    }, 500);
                 },
-    
+
                 setupEventListeners() {
-                    let touchStartX = 0;
-                    let touchEndX = 0;
-                    let touchStartY = 0;
-    
-                    this.element.addEventListener('touchstart', (e) => {
-                        touchStartX = e.touches[0].clientX;
-                        touchStartY = e.touches[0].clientY;
+                    let startX = 0;
+                    let endX = 0;
+
+                    this.nextBtn.addEventListener('click', () => this.goToSlide(this.currentSlide + 1));
+                    this.prevBtn.addEventListener('click', () => this.goToSlide(this.currentSlide - 1));
+
+                    this.inner.addEventListener('touchstart', (e) => {
+                        startX = e.touches[0].clientX;
                     });
-    
-                    this.element.addEventListener('touchend', (e) => {
-                        touchEndX = e.changedTouches[0].clientX;
-                        const touchEndY = e.changedTouches[0].clientY;
-                        const deltaX = touchStartX - touchEndX;
-                        const deltaY = Math.abs(touchStartY - touchEndY);
-    
-                        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > deltaY) {
-                            deltaX > 0 ? this.nextSlide() : this.prevSlide();
+
+                    this.inner.addEventListener('touchend', (e) => {
+                        endX = e.changedTouches[0].clientX;
+                        const diff = startX - endX;
+
+                        if (Math.abs(diff) > 50) {
+                            diff > 0 ? this.goToSlide(this.currentSlide + 1) : this.goToSlide(this.currentSlide - 1);
                         }
                     });
-    
-                    document.getElementById('nextBtn').addEventListener('click', () => this.nextSlide());
-                    document.getElementById('prevBtn').addEventListener('click', () => this.prevSlide());
                 }
             };
-    
+
             carousel.init();
         });
     </script>
