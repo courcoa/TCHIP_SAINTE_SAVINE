@@ -116,98 +116,111 @@
     </div>
 
 <script>
-let currentSlide = 1;
-const carouselInner = document.getElementById('carouselInner');
-const slides = document.querySelectorAll('.carousel-item');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const totalSlides = slides.length - 2;
-
-function updateCarousel() {
-    carouselInner.style.transition = 'transform 0.5s';
-    carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-}
-
-function nextSlide() {
-    currentSlide++;
-    updateCarousel();
-    if (currentSlide === totalSlides + 1) {
-        setTimeout(() => {
-            carouselInner.style.transition = 'none';
-            currentSlide = 1;
-            carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-        }, 500);
-    }
-}
-
-function prevSlide() {
-    currentSlide--;
-    updateCarousel();
-    if (currentSlide === 0) {
-        setTimeout(() => {
-            carouselInner.style.transition = 'none';
-            currentSlide = totalSlides;
-            carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
-        }, 500);
-    }
-}
-
-nextBtn.addEventListener('click', nextSlide);
-prevBtn.addEventListener('click', prevSlide);
-
-updateCarousel();
-
-let touchStartX = 0;
-let touchEndX = 0;
-let touchDeltaX = 0;
-let isScrolling = false;
-
-carouselInner.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    isScrolling = false;
-}, { passive: true });
-
-carouselInner.addEventListener('touchmove', (e) => {
-    touchEndX = e.touches[0].clientX;
-    touchDeltaX = touchStartX - touchEndX;
+document.addEventListener('DOMContentLoaded', () => {
+    const carousel = document.getElementById('imageCarousel');
+    const carouselInner = document.getElementById('carouselInner');
+    const slides = document.querySelectorAll('.carousel-item');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
     
-    // Determine scrolling intent
-    if (Math.abs(touchDeltaX) > 10) {
-        isScrolling = true;
-        e.preventDefault();
+    const totalSlides = slides.length - 2;
+    let currentSlide = 1;
+    let startX = 0;
+    let isDragging = false;
+
+    function updateCarousel() {
+        carouselInner.style.transition = 'transform 0.5s ease';
+        carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
     }
-}, { passive: false });
 
-carouselInner.addEventListener('touchend', (e) => {
-    if (!isScrolling) return;
-
-    // Adjust slide based on swipe distance
-    if (Math.abs(touchDeltaX) > 50) {
-        touchDeltaX > 0 ? nextSlide() : prevSlide();
+    function nextSlide() {
+        currentSlide++;
+        updateCarousel();
+        
+        if (currentSlide === totalSlides + 1) {
+            setTimeout(() => {
+                carouselInner.style.transition = 'none';
+                currentSlide = 1;
+                carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }, 500);
+        }
     }
-}, { passive: true });
 
-// Lightbox handling
-const lightbox = document.getElementById('lightbox');
-const lightboxImage = document.getElementById('lightboxImage');
-const carouselImages = document.querySelectorAll('.carousel-image');
-
-function openLightbox(src) {
-    lightboxImage.src = src;
-    lightbox.style.display = 'flex';
-}
-
-function closeLightbox(event) {
-    if (event.target === lightbox || event.target.id === 'lightboxCloseBtn') {
-        lightbox.style.display = 'none';
+    function prevSlide() {
+        currentSlide--;
+        updateCarousel();
+        
+        if (currentSlide === 0) {
+            setTimeout(() => {
+                carouselInner.style.transition = 'none';
+                currentSlide = totalSlides;
+                carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+            }, 500);
+        }
     }
-}
 
-carouselImages.forEach(img => {
-    img.addEventListener('click', () => openLightbox(img.src));
+    // Navigation buttons
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+
+    // Touch events with advanced handling
+    carousel.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+    }, { passive: true });
+
+    carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        
+        const currentX = e.touches[0].clientX;
+        const diffX = startX - currentX;
+        
+        // Prevent vertical scrolling during horizontal swipe
+        if (Math.abs(diffX) > 10) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    carousel.addEventListener('touchend', (e) => {
+        if (!isDragging) return;
+        
+        const endX = e.changedTouches[0].clientX;
+        const diffX = startX - endX;
+        
+        if (Math.abs(diffX) > 50) {
+            diffX > 0 ? nextSlide() : prevSlide();
+        }
+        
+        isDragging = false;
+    }, { passive: true });
+
+    // Lightbox functionality
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const carouselImages = document.querySelectorAll('.carousel-image');
+    const lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
+
+    function openLightbox(src) {
+        lightboxImage.src = src;
+        lightbox.style.display = 'flex';
+    }
+
+    function closeLightbox(e) {
+        if (e.target === lightbox || e.target === lightboxCloseBtn) {
+            lightbox.style.display = 'none';
+        }
+    }
+
+    carouselImages.forEach(img => {
+        img.addEventListener('click', () => openLightbox(img.src));
+    });
+
+    lightbox.addEventListener('click', closeLightbox);
+    lightboxCloseBtn.addEventListener('click', closeLightbox);
+
+    // Initial carousel setup
+    updateCarousel();
 });
-
-document.getElementById('lightboxCloseBtn').addEventListener('click', closeLightbox);
 </script>
 </body>
 </html>
