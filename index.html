@@ -10,7 +10,6 @@
         h1 {
             font-family: 'Oswald', sans-serif;
             font-weight: 600;
-            padding-top: 15px;
         }
         .left-0 { left: 15px !important; height: 40px; width: 40px; }
         .right-0 { right: 15px !important; height: 40px; width: 40px; }
@@ -37,11 +36,11 @@
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="background: linear-gradient(to bottom, #BCE1E7, #FAD9EA);">
     <!-- Header Section -->
-    <header class="w-full text-center mb-6">
-        <h1 class="text-4xl font-bold">TCHIP Coiffure</h1>
-        <p class="text-lg">95 av. du Général GALLIENI<br>10300 SAINTE-SAVINE</p>
-        <a href="https://www.google.com/maps?q=TCHIP Coiffure, 95 avenue du Général GALLIENI, 10300 SAINTE-SAVINE" class="mt-2 text-blue-500 hover:text-blue-700 inline-block">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <header class="w-full text-center mb-12">
+        <h1 class="text-4xl font-bold mb-4">TCHIP Coiffure</h1>
+        <p class="text-lg mb-2">95 av. du Général GALLIENI<br>10300 SAINTE-SAVINE</p>
+        <a href="https://www.google.com/maps?q=TCHIP Coiffure, 95 avenue du Général GALLIENI, 10300 SAINTE-SAVINE" class="inline-block mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 hover:text-blue-700">
                 <path d="M21 10c0 6-9 13-9 13s-9-7-9-13a9 9 0 1 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
             </svg>
@@ -161,17 +160,27 @@
         // Swipe functionality
         let touchStartX = 0;
         let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
 
         carouselInner.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
         });
 
         carouselInner.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
-            if (touchStartX - touchEndX > 50) {
-                nextSlide();
-            } else if (touchEndX - touchStartX > 50) {
-                prevSlide();
+            touchEndY = e.changedTouches[0].screenY;
+            const deltaX = touchStartX - touchEndX;
+            const deltaY = Math.abs(touchStartY - touchEndY);
+
+            // Check if horizontal swipe and not primarily a vertical movement
+            if (Math.abs(deltaX) > 50 && deltaX > deltaY) {
+                if (deltaX > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
             }
         });
 
